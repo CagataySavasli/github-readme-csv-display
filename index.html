@@ -10,7 +10,7 @@
     th { background: #f4f4f4; }
     #error { color: red; }
   </style>
-  <!-- PapaParse CSV parser CDN -->
+  <!-- PapaParse CDN -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
@@ -21,47 +21,45 @@
   <div id="table-container"></div>
 
   <script>
-    // --- 1) Query string'den 'csvUrl' parametresini okuyan yardımcı fonskiyon ---
+    // Query string’den ‘csvUrl’ parametresini okur
     function getQueryParam(name) {
       const params = new URLSearchParams(window.location.search);
       return params.get(name);
     }
 
-    // --- 2) csvUrl'i al, yoksa hata göster ---
     const csvUrl = getQueryParam('csvUrl');
     if (!csvUrl) {
       document.getElementById('loading').remove();
       document.getElementById('error').textContent =
-        'Hata: URL parametresi eksik. Örn: ?csvUrl=https://raw.githubusercontent.com/.../result.csv';
+        'Hata: ?csvUrl=YOUR_RAW_CSV_URL parametresini ekleyin.';
       throw new Error('csvUrl parametresi bulunamadı');
     }
 
-    // --- 3) CSV'i çek, parse et ve tabloyu oluştur ---
     fetch(csvUrl)
       .then(resp => {
         if (!resp.ok) throw new Error('CSV yüklenemedi: ' + resp.status);
         return resp.text();
       })
-      .then(csvText => Papa.parse(csvText, { header: true }))
+      .then(text => Papa.parse(text, { header: true }))
       .then(result => {
-        const data = result.data;           // Array of objects
-        const columns = result.meta.fields; // Column isimleri
+        const data = result.data;
+        const cols = result.meta.fields;
 
         const table = document.createElement('table');
         const thead = table.createTHead();
         const headerRow = thead.insertRow();
-        columns.forEach(col => {
+        cols.forEach(c => {
           const th = document.createElement('th');
-          th.textContent = col;
+          th.textContent = c;
           headerRow.appendChild(th);
         });
 
         const tbody = table.createTBody();
-        data.forEach(rowObj => {
+        data.forEach(r => {
           const tr = tbody.insertRow();
-          columns.forEach(col => {
-            const cell = tr.insertCell();
-            cell.textContent = rowObj[col];
+          cols.forEach(c => {
+            const td = tr.insertCell();
+            td.textContent = r[c];
           });
         });
 
